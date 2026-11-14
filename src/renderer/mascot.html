@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://api.openai.com; media-src 'self' blob: mediastream:; img-src 'self' data:" />
+  <title>Parley</title>
+  <link rel="stylesheet" href="mascot.css" />
+</head>
+<body>
+  <!-- speech bubble: corrections, better words, check-ins -->
+  <div id="bubble" class="bubble hidden" role="status">
+    <button class="b-close" id="bubble-close" title="Dismiss">×</button>
+    <div id="bubble-content"></div>
+  </div>
+  <div id="hint" class="hint hidden"></div>
+
+  <canvas id="kakashi" aria-label="Your Parley buddy" role="img"></canvas>
+
+  <script src="agentkit.js"></script>
+  <script src="agentkit-styles.js"></script>
+  <script src="wakeword.js"></script>
+  <script src="mascot.js"></script>
+</body>
+</html>

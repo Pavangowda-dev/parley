@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'" />
+  <title>Parley</title>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+  <div class="titlebar"></div>
+  <aside class="side">
+    <div class="brand">
+      <canvas id="brand-char" class="brand-char" aria-hidden="true"></canvas>
+      <div><div class="brand-name">Parley</div><div class="brand-sub">English buddy</div></div>
+    </div>
+    <nav>
+      <button data-tab="dashboard"><span class="idx">01</span>Dashboard</button>
+      <button data-tab="today"><span class="idx">02</span>Today</button>
+      <button data-tab="projects"><span class="idx">03</span>Projects</button>
+      <button data-tab="memory"><span class="idx">04</span>Memory</button>
+      <button data-tab="settings"><span class="idx">05</span>Settings</button>
+    </nav>
+    <div class="side-foot" id="side-foot"></div>
+  </aside>
+  <main id="main"></main>
+  <div class="tip" id="tip"></div>
+  <div class="toast" id="toast"></div>
+  <script src="agentkit.js"></script>
+  <script src="agentkit-styles.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

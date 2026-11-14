@@ -1,0 +1,72 @@
+{
+  "name": "parley",
+  "productName": "Parley",
+  "version": "1.0.0",
+  "description": "Parley — a voice buddy that lives in the corner of your screen. Say \"Hey Aira\" (or any name you choose), talk about your day, and get gentle English corrections, reminders and progress stats. Windows · runs locally · just add your OpenAI key.",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "shortcut": "powershell -ExecutionPolicy Bypass -File scripts/install-shortcut.ps1",
+    "dist": "electron-builder --win nsis"
+  },
+  "license": "MIT",
+  "build": {
+    "appId": "com.parley.app",
+    "productName": "Parley",
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Parley",
+      "runAfterFinish": true
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "node_modules/@picovoice/**"
+    ],
+    "artifactName": "Parley-Setup-${version}.${ext}"
+  },
+  "dependencies": {
+    "@picovoice/porcupine-node": "^4.0.2",
+    "@picovoice/pvrecorder-node": "^1.2.9"
+  },
+  "devDependencies": {
+    "electron": "^45.3.0",
+    "electron-builder": "^26.18.0"
+  },
+  "keywords": [
+    "english",
+    "speaking-practice",
+    "voice-assistant",
+    "electron",
+    "openai-realtime",
+    "language-learning",
+    "desktop-pet",
+    "accountability"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pavangowda-dev/parley.git"
+  },
+  "homepage": "https://github.com/Pavangowda-dev/parley#readme"
+}
