@@ -1,4 +1,4 @@
-// Long-term memory + analytics. Stored in %APPDATA%/Parley/memory.json. All times in IST.
+// Long-term memory + analytics. Stored in the app's data folder (memory.json). All times are the user's local time.
 //
 // Retention (keeps the file small and every conversation fast):
 //   - Details (timeline events, day summaries, corrections): last 30 days
@@ -31,8 +31,8 @@ const file = () => path.join(app.getPath("userData"), "memory.json");
 const uid = () => Math.random().toString(36).slice(2, 9);
 const nowISO = () => new Date().toISOString();
 
-// ---------------------------------------------------------------- time (IST)
-const tz = () => settings.load().timezone || "Asia/Kolkata";
+// ---------------------------------------------------------------- time (user's local time zone)
+const tz = () => settings.load().timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 function parts(d = new Date()) {
   const p = {};
   for (const { type, value } of new Intl.DateTimeFormat("en-GB", {
@@ -225,13 +225,13 @@ function contextForPrompt() {
   const followups = m.followups.filter((f) => !f.done).slice(-8);
   const todaysCorrections = m.corrections.filter((c) => c.day === today());
 
-  return `CURRENT INDIAN TIME (IST): ${longDate(now)}, ${clock12(now)} (${hhmm(now)}) - ${partOfDay(hour(now))}.
+  return `CURRENT LOCAL TIME (${tz()}): ${longDate(now)}, ${clock12(now)} (${hhmm(now)}) - ${partOfDay(hour(now))}.
 Last conversation: ${ago(m.lastChatAt)}. Conversations today so far: ${t.chats}.
 
 SLEEP:
 ${sleepContext()}
 
-TODAY SO FAR (IST):
+TODAY SO FAR (local time):
 ${t.summary ? t.summary + "\n" : ""}${t.events.slice(-14).map((e) => `- ${e.time} ${e.text}`).join("\n") || "- nothing yet (this may be the first chat of the day)"}
 
 RECENT DAYS:
@@ -320,7 +320,7 @@ function markChat() {
 }
 
 // ---------------------------------------------------------------- reminders
-// at_time "HH:MM" (24h, local/IST) → next occurrence; or in_minutes from now.
+// at_time "HH:MM" (24h, local time) → next occurrence; or in_minutes from now.
 function addReminder({ text, at_time, in_minutes }) {
   const m = load();
   let due;

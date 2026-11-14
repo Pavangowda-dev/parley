@@ -4,7 +4,8 @@
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const main = $("#main");
-  const TZ = "Asia/Kolkata";
+  let TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;   // replaced by the saved time zone on render
+  const MAC = window.ttm.platform === "darwin";
   const fmtDay = (k, opts = { day: "numeric", month: "short" }) => new Date(k + "T12:00:00Z").toLocaleDateString("en-GB", { ...opts, timeZone: "UTC" });
   const num = (n) => (n == null ? "–" : n >= 10000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1) + "k" : n.toLocaleString("en-IN"));
   const fmtH = (h) => (h == null ? "–" : `${Math.floor(h)}h ${String(Math.round((h % 1) * 60)).padStart(2, "0")}m`);
@@ -55,7 +56,9 @@
     BN = s.buddyName || "Aira";
     $(".brand-name").textContent = BN;
     document.title = `${BN} · Parley`;
-    const hk = { "ctrl+alt+space": ["Ctrl", "Alt", "Space"], "ctrl+shift+space": ["Ctrl", "Shift", "Space"], "ctrl+alt+k": ["Ctrl", "Alt", "K"] }[s.hotkey] || ["Ctrl", "Alt", "Space"];
+    if (s.timezone) TZ = s.timezone;
+    const K = MAC ? { Ctrl: "⌃ Control", Alt: "⌥ Option", Shift: "⇧ Shift" } : {};
+    const hk = ({ "ctrl+alt+space": ["Ctrl", "Alt", "Space"], "ctrl+shift+space": ["Ctrl", "Shift", "Space"], "ctrl+alt+k": ["Ctrl", "Alt", "K"] }[s.hotkey] || ["Ctrl", "Alt", "Space"]).map((k) => K[k] || k);
     const wake = { picovoice: `“Hey ${BN}” · offline`, openai: `“Hey ${BN}” · cloud`, off: "Wake word off" }[s.wakeRunning] || "Wake word off";
     $("#side-foot").innerHTML = `
       <div class="status-line"><span class="dot ${s.wakeRunning !== "off" ? "on" : ""}"></span>${esc(wake)}</div>
@@ -175,10 +178,10 @@
     const empty = !k.chats;
 
     main.innerHTML = `<div class="page">
-      <div class="eyebrow"><span>Dashboard</span><span class="sep"></span><span>${esc(now)} IST</span></div>
+      <div class="eyebrow"><span>Dashboard</span><span class="sep"></span><span>${esc(now)}</span></div>
       <h1 class="display">${greeting(s.name)}</h1>
       <p class="lede">${empty
-        ? `Say <b>“Hey ${esc(BN)}”</b> or press <b>${esc({ "ctrl+shift+space": "Ctrl + Shift + Space", "ctrl+alt+k": "Ctrl + Alt + K" }[s.hotkey] || "Ctrl + Alt + Space")}</b> and tell ${esc(BN)} about your day. Your speaking stats will build up here.`
+        ? `Say <b>“Hey ${esc(BN)}”</b> or press <b>${esc(MAC ? ({ "ctrl+shift+space": "⌃⇧Space", "ctrl+alt+k": "⌃⌥K" }[s.hotkey] || "⌃⌥Space") : ({ "ctrl+shift+space": "Ctrl + Shift + Space", "ctrl+alt+k": "Ctrl + Alt + K" }[s.hotkey] || "Ctrl + Alt + Space"))}</b> and tell ${esc(BN)} about your day. Your speaking stats will build up here.`
         : `This week you spoke for <b>${weekMin} minutes</b> across <b>${weekChats} conversation${weekChats === 1 ? "" : "s"}</b>${k.accuracy7 != null ? `, with <b>${k.accuracy7}%</b> of your sentences correct` : ""}. ${k.streak > 1 ? `You're on a <b>${k.streak}-day streak</b>, so keep it going.` : "Talk every day to build a streak."}`}</p>
 
       ${(() => {
@@ -225,7 +228,7 @@
       </div>
 
       <div class="section">
-        <div class="section-head"><h2>When you <em>talk</em></h2><span class="meta">Conversations by weekday and hour · IST · last 30 days</span></div>
+        <div class="section-head"><h2>When you <em>talk</em></h2><span class="meta">Conversations by weekday and hour · local time · last 30 days</span></div>
         <div class="card">${chartOrEmpty(heatmap(a.heat), "Your talking rhythm appears here.")}</div>
       </div>
 
@@ -273,7 +276,7 @@
 
       <div class="section grid g-2">
         <div>
-          <div class="section-head"><h2>Timeline</h2><span class="meta">IST · hover an entry to delete it</span></div>
+          <div class="section-head"><h2>Timeline</h2><span class="meta">Local time · hover an entry to delete it</span></div>
           <div class="card">${d.events?.length ? `<div class="timeline">${d.events.map((e) => `
             <div class="tl"><time>${esc(e.time)}</time><span class="node"></span><span class="txt">${esc(e.text)}</span>
             <span class="actions"><button class="icon-btn del" data-del-event="${esc(e.id)}" title="Forget this">✕</button></span></div>`).join("")}</div>`
@@ -588,7 +591,7 @@
       <div class="settings-group"><h3>1 · Add your OpenAI API key</h3>
         <p>That's the only setup. Create a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>, paste it below and press Save. It's stored encrypted on this computer and only ever sent to OpenAI.</p>
         <div class="card welcome-card">${keyField}</div></div>
-      <div class="settings-group"><h3>2 · Say “Hey ${esc(BN)}”</h3><p>Or press Ctrl + Alt + Space. Everything below is optional.</p></div>`}
+      <div class="settings-group"><h3>2 · Say “Hey ${esc(BN)}”</h3><p>Or press ${MAC ? "⌃⌥Space" : "Ctrl + Alt + Space"}. Everything below is optional.</p></div>`}
 
       <div class="settings-group"><h3>Character</h3><p>Pick your buddy and paint it. Saved instantly, and the one on your desktop changes right away.</p>
         <div id="studio"></div></div>
@@ -606,10 +609,10 @@ ${s.hasKey ? keyField : ""}          <div class="field"><label>Buddy's name<smal
             ${seg("autoHideMin", [[1, "1 min"], [3, "3 min"], [10, "10 min"], [0, "Always visible"]], s.autoHideMin)}</div>
           <div class="field"><label>Daily speaking goal<small>Shown on the dashboard</small></label>${seg("dailyGoalMin", [[5, "5 min"], [10, "10 min"], [15, "15 min"], [20, "20 min"]], s.dailyGoalMin)}</div>
           <div class="field"><label>Talk hotkey<small>Tap to start, tap again to stop</small></label>
-            <div class="ctl"><select data-select="hotkey">${[["ctrl+alt+space", "Ctrl + Alt + Space"], ["ctrl+shift+space", "Ctrl + Shift + Space"], ["ctrl+alt+k", "Ctrl + Alt + K"]].map(([v, l]) => `<option value="${v}" ${s.hotkey === v ? "selected" : ""}>${l}</option>`).join("")}</select></div></div>
+            <div class="ctl"><select data-select="hotkey">${[["ctrl+alt+space", "Ctrl + Alt + Space"], ["ctrl+shift+space", "Ctrl + Shift + Space"], ["ctrl+alt+k", "Ctrl + Alt + K"]].map(([v, l]) => `<option value="${v}" ${s.hotkey === v ? "selected" : ""}>${MAC ? l.replace("Ctrl", "⌃ Control").replace("Alt", "⌥ Option").replace("Shift", "⇧ Shift") : l}</option>`).join("")}</select></div></div>
           <div class="field"><label>End chat after silence<small>Saves API cost when you walk away</small></label>${seg("autoSleepSec", [[45, "45 s"], [75, "75 s"], [120, "2 min"], [300, "5 min"]], s.autoSleepSec)}</div>
           <div class="field"><label>Check-in bubbles<small>Text-only reminders, never speaks by itself</small></label>${seg("nudges", [[false, "Off"], [true, "On"]], s.nudges)}</div>
-          <div class="field"><label>Start with Windows</label>${seg("startWithWindows", [[true, "On"], [false, "Off"]], s.startWithWindows)}</div>
+          <div class="field"><label>${MAC ? "Start at login" : "Start with Windows"}</label>${seg("startWithWindows", [[true, "On"], [false, "Off"]], s.startWithWindows)}</div>
         </div></div>
 
       <div class="settings-group"><h3>Wake word</h3><p>Works out of the box. Optional: a free Picovoice key makes it fully offline. Running now: <span class="${s.wakeRunning === "off" ? "err" : "ok"}">${running}</span></p>

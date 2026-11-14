@@ -3,7 +3,7 @@
 <p align="center"><b>A voice buddy that lives in the corner of your screen and helps you speak English with confidence.</b><br>
 Say <i>"Hey Aira"</i> (or any name you choose), talk about your day, and your buddy talks back like a friend. It corrects your English as you go, remembers your life and keeps you on track.</p>
 
-<p align="center">Windows · runs on your own computer · no account, no server · all you need is an OpenAI API key</p>
+<p align="center">Windows & macOS · runs on your own computer · no account, no server · all you need is an OpenAI API key</p>
 
 ---
 
@@ -54,7 +54,7 @@ Aira:            "Morning! Six hours twenty-five. Let's aim for seven tonight. B
 
 ### 🗣️ Real conversations
 - **Natural voice.** It hears your actual voice and answers by voice, in under a second. You can interrupt it any time.
-- **Starting a chat.** Say **"Hey Aira"** (or whatever name you give it), press **Ctrl + Alt + Space**, or click it.
+- **Starting a chat.** Say **"Hey Aira"** (or whatever name you give it), press **Ctrl + Alt + Space** (Mac: **⌃⌥Space**), or click it.
 - **Ending a chat.** Say **"bye"**, **"talk later"** or **"good night"** and it says goodbye and hangs up. It also hangs up by itself after a silence.
 - **Patient listening.** Pause to think as long as you need; it waits until you've finished your thought.
 
@@ -132,11 +132,17 @@ Step by step, one conversation looks like this:
 
 ## Install on your computer (step by step)
 
-**You need:** Windows 10 or 11, a microphone (a laptop mic or headset is fine), an internet connection and an [OpenAI API key](#add-your-openai-api-key).
+**You need:**
+- **A computer:** Windows 10/11, or macOS 12 (Monterey) or newer on an Apple Silicon or Intel Mac.
+- **A microphone:** a built-in mic or a headset is fine.
+- **An internet connection.**
+- **An [OpenAI API key](#add-your-openai-api-key).**
 
-There are two ways to install. **Option A works on every PC** and takes about 5 minutes.
+There are two ways to install. **Option A works on every computer** and takes about 5 minutes.
 
 ### Option A: run from source (recommended)
+
+#### 🪟 Windows
 
 **Step 1. Install Node.js.**
 Go to [nodejs.org](https://nodejs.org), download the **LTS** version and run the installer with the default options. To check it worked, open **PowerShell** (Start menu → type *PowerShell*) and run:
@@ -151,7 +157,7 @@ You should see something like `v20.x` or newer.
   git clone https://github.com/Pavangowda-dev/parley.git
   cd parley
   ```
-- **Without Git:** on the GitHub page click **Code → Download ZIP** and unzip it, for example to `Documents\talktome`. Then open PowerShell in that folder: right-click inside the folder → **Open in Terminal**.
+- **Without Git:** on the GitHub page click **Code → Download ZIP** and unzip it, for example to `Documents\parley`. Then open the folder, right-click inside it → **Open in Terminal**.
 
 **Step 3. Install the app's parts.**
 ```powershell
@@ -159,8 +165,7 @@ npm install
 ```
 This downloads everything the app needs into a `node_modules` folder. It takes 1–3 minutes.
 
-**Step 4. Add your OpenAI API key.**
-See [Add your OpenAI API key](#add-your-openai-api-key) below. You can also skip this step and paste the key into the app when it opens.
+**Step 4. Add your OpenAI API key.** See [Add your OpenAI API key](#add-your-openai-api-key). You can also skip this step and paste the key into the app when it opens.
 
 **Step 5. Start it.**
 ```powershell
@@ -168,17 +173,62 @@ npm start
 ```
 The buddy appears in the bottom-right corner of your screen. 🎉
 
-**Step 6 (optional). Add a desktop shortcut so you never need PowerShell again.**
+**Step 6 (optional). Add a shortcut so you never need PowerShell again.**
 ```powershell
 npm run shortcut
 ```
-This puts a **Parley** icon on your desktop and in the Start menu. The app also **starts automatically with Windows**; you can turn that off in Settings.
+This puts a **Parley** icon on your desktop and in the Start menu. Parley also **starts automatically with Windows**; you can turn that off in Settings.
 
-### Option B: installer (.exe)
+#### 🍎 macOS
 
-If a release is available on the project's **Releases** page, download `Parley-Setup-x.y.z.exe` and run it.
+**Step 1. Install Node.js.**
+Download the **LTS** version from [nodejs.org](https://nodejs.org) (the macOS installer) and run it. If you use Homebrew, `brew install node` works too. Then open **Terminal** (⌘ Space → type *Terminal*) and check:
+```bash
+node --version
+```
 
-> The installer isn't code-signed. Windows SmartScreen may show *"Windows protected your PC"*; click **More info → Run anyway**. On PCs with **Smart App Control** turned on, unsigned apps are blocked completely, so use **Option A** instead.
+**Step 2. Download Parley.**
+```bash
+git clone https://github.com/Pavangowda-dev/parley.git
+cd parley
+```
+If macOS asks to install the *command line developer tools* (needed for `git`), click **Install** and run the command again. Without Git, use **Code → Download ZIP**, unzip it, then in Terminal type `cd ` (with a space), drag the folder onto the Terminal window and press Return.
+
+**Step 3. Install the app's parts.**
+```bash
+npm install
+```
+
+**Step 4. Add your OpenAI API key.** See [Add your OpenAI API key](#add-your-openai-api-key), or paste it into the app when it opens.
+
+**Step 5. Start it.**
+```bash
+npm start
+```
+- **Microphone:** macOS asks for **microphone** permission the first time; click **Allow**. When started from Terminal, the permission is listed under *Terminal*.
+- **Keychain:** saving your key in the app may show a **Keychain** prompt (that's where the key is stored, encrypted); click **Always Allow**.
+- **Where to find the buddy:** bottom-right of your screen, plus a small icon in the **menu bar** at the top. Parley doesn't sit in the Dock unless its dashboard is open.
+
+**Step 6 (optional). Make a Parley app so you never need Terminal again.**
+```bash
+npm run shortcut
+```
+This creates **Parley.app** in your `Applications` folder (inside your home folder), with the Parley icon. Open it from Spotlight (⌘ Space → *Parley*), Launchpad or Finder. Parley also **starts at login**; you can turn that off in Settings.
+
+### Option B: installers
+
+If a release is available on the project's **Releases** page:
+
+| System | Download | Notes |
+|---|---|---|
+| **Windows** | `Parley-Setup-x.y.z.exe` | Not code-signed. SmartScreen may say *"Windows protected your PC"*: click **More info → Run anyway**. On PCs with **Smart App Control** turned on, unsigned apps are blocked completely; use Option A. |
+| **macOS, Apple Silicon** (M1/M2/M3/M4) | `Parley-x.y.z-arm64.dmg` | Open the .dmg and drag **Parley** into **Applications**. |
+| **macOS, Intel** | `Parley-x.y.z-x64.dmg` | Same as above. |
+
+On a Mac, the app isn't signed with an Apple Developer ID, so the first launch shows *"Parley can't be opened because Apple cannot check it"*. To open it anyway, go to **System Settings → Privacy & Security** → scroll down → **Open Anyway**. If it says the app *"is damaged"*, run this once in Terminal, then open Parley again:
+```bash
+xattr -cr /Applications/Parley.app
+```
 
 ---
 
@@ -193,9 +243,9 @@ This is the **only** setup the app needs.
 | Way | How | Best for |
 |---|---|---|
 | **In the app** (easiest) | Start the app; Settings opens by itself on first run. Paste the key into **"Add your OpenAI API key"** and press **Save**. The app checks the key straight away. | Everyone |
-| **In a `.env` file** | In the project folder, copy `.env.example` to a new file named `.env`, open it in Notepad and fill in `OPENAI_API_KEY=sk-...` | Running from source |
+| **In a `.env` file** | In the project folder, copy `.env.example` to a new file named `.env`, open it in a text editor (Notepad / TextEdit) and fill in `OPENAI_API_KEY=sk-...` | Running from source |
 
-A key saved in the app is **encrypted** with your Windows account and stored on this computer only. If both are set, the one saved in the app wins.
+A key saved in the app is **encrypted** (Windows: with your user account; macOS: in the Keychain) and stored on this computer only. If both are set, the one saved in the app wins.
 
 > 🔒 **Never share your key or upload your `.env` file.** It's already listed in `.gitignore`, so Git won't upload it.
 
@@ -204,11 +254,11 @@ A key saved in the app is **encrypted** with your Windows account and stored on 
 ## Your first conversation
 
 1. **Start the app.** A small character appears in the bottom-right corner. You can drag it anywhere; it always stays inside your screen.
-2. **Wake it up.** Say **"Hey Aira"**, or press **Ctrl + Alt + Space**, or click it. The first time, Windows may ask for microphone permission; allow it.
+2. **Wake it up.** Say **"Hey Aira"**, or press **Ctrl + Alt + Space** (Mac: **⌃⌥Space**), or click it. The first time, your computer asks for microphone permission; allow it.
 3. **Wait for the chime,** then talk. Tell it what you did today.
 4. **Look out for bubbles.** When you make a mistake, a bubble shows the correct sentence. Try saying it again!
 5. **Say "bye"** when you're done. It'll save what you talked about.
-6. **Explore the panel.** Right-click it (or click the tray icon) and choose **Dashboard** to see your stats, today's timeline and corrections.
+6. **Explore the panel.** Right-click it (or click the tray / menu-bar icon) and choose **Dashboard** to see your stats, today's timeline and corrections.
 
 ---
 
@@ -231,7 +281,7 @@ A key saved in the app is **encrypted** with your Windows account and stored on 
 
 ## The dashboard
 
-Right-click the buddy → **Dashboard**, or click the tray icon while it's visible.
+Right-click the buddy → **Dashboard**, or click the tray icon (Windows) / menu-bar icon (Mac) while it's visible.
 
 | Page | What you'll find |
 |---|---|
@@ -249,7 +299,7 @@ Right-click the buddy → **Dashboard**, or click the tray icon while it's visib
 |---|---|
 | **Character** | Choose one of 12 characters and its colours (themes or custom), with a live preview. Saved instantly. |
 | **Basics** | Your OpenAI key, the **buddy's name** (the wake phrase follows it: "Hey Jarvis"), your name, and your first language (helps it spot typical mistakes). |
-| **Presence** | Auto-hide delay, daily speaking goal, the talk hotkey, how long a silence ends a chat, optional check-in bubbles, and start with Windows. |
+| **Presence** | Auto-hide delay, daily speaking goal, the talk hotkey, how long a silence ends a chat, optional check-in bubbles, and start with Windows / at login. |
 | **Wake word** | On or off, plus optional offline mode ([below](#optional-offline-wake-word)). |
 | **Voice & coaching** | Voice (`marin` and `cedar` sound the most natural), speaking speed, how long it waits when you pause, coach style (*Gentle · Pushes me · Tough love*), and how much it corrects. |
 
@@ -260,14 +310,14 @@ Right-click the buddy → **Dashboard**, or click the tray icon while it's visib
 The wake word works out of the box. By default, short bursts of speech (under about 4 seconds) are sent to OpenAI to check whether you said its name. To make it fully **offline and free**:
 
 1. Create a free account at [console.picovoice.ai](https://console.picovoice.ai) and copy your **AccessKey**.
-2. In **Porcupine**, create a wake word with your buddy's name (e.g. *"Hey Aira"*), choose **English** and **Windows**, then download and unzip it. You get a `.ppn` file.
+2. In **Porcupine**, create a wake word with your buddy's name (e.g. *"Hey Aira"*), choose **English** and your system (**Windows** or **macOS**), then download and unzip it. You get a `.ppn` file.
 3. In **Settings → Wake word**, paste the AccessKey, press **Save**, then **Choose .ppn file…**. "Running now" switches to **Picovoice · offline**.
 
 ---
 
 ## Privacy and your data
 
-- **Stays on your computer:** everything is in `%APPDATA%\Parley\`.
+- **Stays on your computer:** everything is in your Parley data folder: `%APPDATA%\Parley\` on Windows, `~/Library/Application Support/Parley/` on macOS.
   - `memory.json`: your day, projects, corrections and stats
   - `settings.json`: your choices
   - `parley.log`: app events
@@ -305,15 +355,16 @@ Tips to keep it low:
 | Problem | Fix |
 |---|---|
 | **"No OpenAI API key"** | Right-click the buddy → Settings → paste your key → Save. |
-| **The buddy doesn't react to its name** | Check Settings → Wake word → *Running now*. Look in `%APPDATA%\Parley\wake-log.txt`: if your phrase shows as `ignore`, the name was misheard. Speak clearly with a short pause after the name, use a clearer 2–3 syllable name, or set up the [offline wake word](#optional-offline-wake-word). |
-| **"Microphone access is blocked"** | Windows Settings → Privacy & security → Microphone → turn on *Let desktop apps access your microphone*. |
+| **The buddy doesn't react to its name** | Check Settings → Wake word → *Running now*. Look in `wake-log.txt` in your [data folder](#privacy-and-your-data): if your phrase shows as `ignore`, the name was misheard. Speak clearly with a short pause after the name, use a clearer 2–3 syllable name, or set up the [offline wake word](#optional-offline-wake-word). |
+| **"Microphone access is blocked"** | **Windows:** Settings → Privacy & security → Microphone → turn on *Let desktop apps access your microphone*. **macOS:** System Settings → Privacy & Security → Microphone → turn on **Terminal** (when started with `npm start`) or **Parley**, then restart Parley. |
 | **The hotkey does nothing** | Another app may use it. Pick a different one in Settings → Presence. |
-| **The buddy has disappeared** | That's auto-hide. Say its name or press the hotkey, or click the tray icon (near the clock). |
+| **The buddy has disappeared** | That's auto-hide. Say its name or press the hotkey, or click the tray icon near the clock (Windows) or the menu-bar icon at the top (Mac). |
 | **The buddy is in a strange place** | Tray icon → **Reset position**. |
 | **No sound** | Check your speakers or headphones and the Windows volume mixer. |
 | **OpenAI error about quota or billing** | Add credit to your OpenAI account. |
 | **`npm start` says Electron isn't found** | Run `npm install` again in the project folder. |
-| **Something else** | Open `%APPDATA%\Parley\parley.log`. Lines starting with `window:` show crashes, restarts and microphone problems. |
+| **Mac: no ⌘V paste in Settings** | Update to the latest version; the Edit menu that makes ⌘C/⌘V work was added for macOS. |
+| **Something else** | Open `parley.log` in your [data folder](#privacy-and-your-data). Lines starting with `window:` show crashes, restarts and microphone problems. |
 
 ---
 
@@ -326,13 +377,13 @@ git pull          # or download the new ZIP and replace the files
 npm install
 npm start
 ```
-Your memory and settings are kept, because they live in `%APPDATA%\Parley\`.
+Your memory and settings are kept, because they live in your data folder, not the project folder.
 
 **Uninstall:**
-1. **Stop the app:** tray icon → **Quit**.
-2. **Stop autostart:** turn off Settings → *Start with Windows* first, or remove *Parley* from Task Manager → Startup apps.
-3. **Remove the app:** delete the project folder, and the desktop and Start-menu shortcuts. If you used the installer, uninstall it from Windows Settings → Apps.
-4. **Remove your data (optional):** delete `%APPDATA%\Parley\`.
+1. **Stop the app:** tray / menu-bar icon → **Quit**.
+2. **Stop autostart:** turn off Settings → *Start with Windows* / *Start at login* first. Otherwise, remove *Parley* from Task Manager → Startup apps (Windows) or System Settings → General → Login Items (Mac).
+3. **Remove the app:** delete the project folder and the shortcuts (on Mac: `~/Applications/Parley.app`). If you used an installer, uninstall it from Windows Settings → Apps, or drag Parley from Applications to the Bin on a Mac.
+4. **Remove your data (optional):** delete the [data folder](#privacy-and-your-data).
 
 ---
 
@@ -350,8 +401,8 @@ src/renderer/agentkit-styles.js the 12 characters + colour presets
 src/renderer/mascot.*           the desktop buddy: voice session (WebRTC), tool calls, bubbles, wake listener
 src/renderer/panel.*            dashboard, today, projects, memory, settings, character studio
 src/renderer/wakeword.js        cloud wake word (short-clip voice detector)
-scripts/                        start script + desktop shortcut installer
-.github/workflows/release.yml   builds the Windows installer on GitHub
+scripts/                        start script + shortcut / Parley.app creator (Windows & macOS)
+.github/workflows/release.yml   builds the Windows + macOS installers on GitHub
 ```
 
 **Models used** (built in, not user-editable):
@@ -362,9 +413,9 @@ scripts/                        start script + desktop shortcut installer
 
 They're defined in `src/main/settings.js`.
 
-**Build the installer:**
-- **On GitHub:** push a tag such as `v1.0.0`. The *Build Windows installer* workflow builds `Parley-Setup-1.0.0.exe` and attaches it to the release. You can also run the workflow by hand from the **Actions** tab.
-- **Locally:** `npm run dist` writes to `dist/`. Machines with Smart App Control turned on block unsigned build tools, so use GitHub for those.
+**Build the installers:**
+- **On GitHub:** push a tag such as `v1.0.0`. The *Build installers* workflow builds `Parley-Setup-1.0.0.exe` (Windows) and `Parley-1.0.0-arm64.dmg` / `Parley-1.0.0-x64.dmg` (macOS) and attaches them to the release. You can also run the workflow by hand from the **Actions** tab.
+- **Locally:** `npm run dist:win` on Windows or `npm run dist:mac` on a Mac. Both write to `dist/`. Machines with Smart App Control turned on block unsigned build tools, so use GitHub for those.
 
 **Add a character:** write one `AgentKit.registerStyle({...})` block in `agentkit-styles.js`. It shows up in the studio automatically.
 

@@ -6,8 +6,10 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "node scripts/start.js",
-    "shortcut": "powershell -ExecutionPolicy Bypass -File scripts/install-shortcut.ps1",
-    "dist": "electron-builder --win nsis"
+    "shortcut": "node scripts/shortcut.js",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win nsis --x64",
+    "dist:mac": "electron-builder --mac dmg --x64 --arm64"
   },
   "license": "MIT",
   "build": {
@@ -44,7 +46,30 @@
     "asarUnpack": [
       "node_modules/@picovoice/**"
     ],
-    "artifactName": "Parley-Setup-${version}.${ext}"
+    "artifactName": "Parley-Setup-${version}.${ext}",
+    "mac": {
+      "category": "public.app-category.education",
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Parley listens when you talk to your buddy, and for its name when the wake word is on.",
+        "LSUIElement": false
+      }
+    },
+    "dmg": {
+      "title": "Parley ${version}",
+      "artifactName": "Parley-${version}-${arch}.${ext}"
+    }
   },
   "dependencies": {
     "@picovoice/porcupine-node": "^4.0.2",

@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, session, nativeImage, shell, dialog, powerMonitor } = require("electron");
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, session, nativeImage, shell, dialog, powerMonitor, systemPreferences } = require("electron");
+const os = require("os");
 const settings = require("./settings");
 const memory = require("./memory");
 const ai = require("./ai");
@@ -30,7 +31,9 @@ if (!gotLock) app.exit(0);
 const AUTOSTART = process.argv.includes("--autostart");
 // Opening the app again (desktop icon / startup) just shows Kakashi — never starts a conversation.
 app.on("second-instance", () => { log("second launch → showing Kakashi"); showMascot("second launch"); });
-app.setAppUserModelId("com.parley.app");
+const IS_MAC = process.platform === "darwin";
+const IS_WIN = process.platform === "win32";
+if (IS_WIN) app.setAppUserModelId("com.parley.app");
 
 // ------------------------------------------------------------------------- one-time move from the old name
 // Earlier versions were called "Talk to Me" and kept data in %APPDATA%\Talk to Me. Copy it over once.
@@ -107,7 +110,7 @@ function createMascot() {
     webPreferences: { preload: PRELOAD, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false },
   });
   mascotWin.setAlwaysOnTop(true, "screen-saver");
-  mascotWin.setVisibleOnAllWorkspaces(true);
+  mascotWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   mascotWin.setIgnoreMouseEvents(true, { forward: true });
   mascotWin.loadFile(path.join(RENDERER, "mascot.html"));
   const me = mascotWin;
@@ -145,13 +148,14 @@ function openPanel(tab = "dashboard") {
     width: 1180, height: 780, minWidth: 820, minHeight: 560, show: false,
     title: BN(), icon: path.join(ASSETS, "icon.png"), autoHideMenuBar: true,
     backgroundColor: "#0a0a0b",
-    titleBarStyle: "hidden",
-    titleBarOverlay: { color: "#0a0a0b", symbolColor: "#a1a1aa", height: 40 },
+    ...(IS_MAC
+      ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 16, y: 14 } }
+      : { titleBarStyle: "hidden", titleBarOverlay: { color: "#0a0a0b", symbolColor: "#a1a1aa", height: 40 } }),
     webPreferences: { preload: PRELOAD, contextIsolation: true, nodeIntegration: false },
   });
   panelWin.loadFile(path.join(RENDERER, "panel.html"), { query: { tab } });
-  panelWin.once("ready-to-show", () => panelWin.show());
-  panelWin.on("closed", () => (panelWin = null));
+  panelWin.once("ready-to-show", () => { if (IS_MAC) app.dock?.show(); panelWin.show(); });
+  panelWin.on("closed", () => { panelWin = null; if (IS_MAC) app.dock?.hide(); });
   panelWin.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
 }
 
@@ -214,7 +218,8 @@ function autoHideTick() {
 
 // ------------------------------------------------------------------------- tray
 function buildTray() {
-  tray = new Tray(nativeImage.createFromPath(path.join(ASSETS, "tray.png")));
+  const trayImg = nativeImage.createFromPath(path.join(ASSETS, "tray.png"));
+  tray = new Tray(IS_MAC ? trayImg.resize({ width: 18, height: 18 }) : trayImg);
   tray.setToolTip(`${BN()} — press ${hotkeyLabel()} or say “Hey ${BN()}”`);
   tray.on("click", () => (shown ? openPanel("dashboard") : showMascot("tray")));
   refreshTrayMenu();
@@ -266,16 +271,38 @@ function applyHotkey() {
 
 function applyStartup() {
   const s = settings.load();
-  if (!s.oldAutostartCleanup) {
-    // the old "Talk to Me" autostart entry would launch a second copy at login — remove it once
-    try { app.setLoginItemSettings({ openAtLogin: false, name: "com.talktome.buddy", path: process.execPath, args: app.isPackaged ? ["--autostart"] : [path.resolve(app.getAppPath()), "--autostart"] }); } catch {}
-    settings.save({ oldAutostartCleanup: true });
+  const on = !!s.startWithWindows;   // "Start at login" (name kept for older settings files)
+  if (IS_WIN) {
+    if (!s.oldAutostartCleanup) {
+      // the old "Talk to Me" autostart entry would launch a second copy at login — remove it once
+      try { app.setLoginItemSettings({ openAtLogin: false, name: "com.talktome.buddy", path: process.execPath, args: app.isPackaged ? ["--autostart"] : [path.resolve(app.getAppPath()), "--autostart"] }); } catch {}
+      settings.save({ oldAutostartCleanup: true });
+    }
+    app.setLoginItemSettings({
+      openAtLogin: on,
+      path: process.execPath,
+      args: app.isPackaged ? ["--autostart"] : [path.resolve(app.getAppPath()), "--autostart"],
+    });
+  } else if (IS_MAC) {
+    if (app.isPackaged) { app.setLoginItemSettings({ openAtLogin: on, args: ["--autostart"] }); return; }
+    // Running from source: a LaunchAgent starts Electron with this project folder at login.
+    const plist = path.join(os.homedir(), "Library", "LaunchAgents", "com.parley.app.plist");
+    try {
+      if (!on) { if (fs.existsSync(plist)) fs.unlinkSync(plist); return; }
+      const esc = (v) => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      fs.mkdirSync(path.dirname(plist), { recursive: true });
+      fs.writeFileSync(plist, `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.parley.app</string>
+  <key>ProgramArguments</key><array>
+    <string>${esc(process.execPath)}</string><string>${esc(path.resolve(app.getAppPath()))}</string><string>--autostart</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+</dict></plist>
+`);
+    } catch (e) { log(`login item failed: ${e.message}`); }
   }
-  app.setLoginItemSettings({
-    openAtLogin: !!s.startWithWindows,
-    path: process.execPath,
-    args: app.isPackaged ? ["--autostart"] : [path.resolve(app.getAppPath()), "--autostart"],
-  });
 }
 
 // Wake word: Picovoice (offline) if set up, otherwise OpenAI cloud check in the mascot window
@@ -575,8 +602,21 @@ ipcMain.handle("data:export", async () => {
 ipcMain.on("mascot:log", (_e, msg) => log(`window: ${String(msg).slice(0, 200)}`));
 
 // ------------------------------------------------------------------------- app
-if (gotLock) app.whenReady().then(() => {
-  log(`app start (v${app.getVersion()})${AUTOSTART ? " at Windows login" : ""}`);
+if (gotLock) app.whenReady().then(async () => {
+  log(`app start (v${app.getVersion()}, ${process.platform})${AUTOSTART ? " at login" : ""}`);
+  if (IS_MAC) {
+    Menu.setApplicationMenu(Menu.buildFromTemplate([
+      { label: "Parley", submenu: [{ role: "about" }, { type: "separator" }, { label: "Open Dashboard", accelerator: "Cmd+,", click: () => openPanel("dashboard") }, { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { type: "separator" }, { label: "Quit Parley", accelerator: "Cmd+Q", click: () => { app.isQuitting = true; app.quit(); } }] },
+      { role: "editMenu" },
+      { role: "windowMenu" },
+    ]));
+    app.dock?.hide();                                    // a desktop buddy lives in the menu bar, not the Dock
+    // macOS asks the user once; the answer is remembered by the system
+    try {
+      const st = systemPreferences.getMediaAccessStatus("microphone");
+      if (st !== "granted") log(`microphone access: ${st}${(await systemPreferences.askForMediaAccess("microphone")) ? " → granted" : " → denied"}`);
+    } catch (e) { log(`microphone permission check failed: ${e.message}`); }
+  }
   session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => cb(permission === "media"));
   session.defaultSession.setPermissionCheckHandler((_wc, permission) => permission === "media");
 
@@ -617,4 +657,5 @@ if (gotLock) app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", (e) => e.preventDefault());
+app.on("activate", () => openPanel("dashboard"));        // macOS: clicking the app in Finder/Launchpad opens the dashboard
 app.on("will-quit", () => { hotkey.stop(); wake.stop(); memory.flush(); });

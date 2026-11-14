@@ -17,7 +17,7 @@ const DEFAULTS = {
   buddyName: "Aira",
   characterStyle: "nori",      // one of the 12 AgentKit characters (see src/renderer/agentkit-styles.js)
   characterColors: null,       // { body, accent, feature: "auto" | "#hex" } — null = the character's own colours
-  timezone: "Asia/Kolkata",    // all times are recorded and spoken in Indian time
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",   // the computer's time zone (saved on first run)
   // Wake word: "auto" = Picovoice if configured, else OpenAI; "picovoice" | "openai" | "off"
   wakeWord: "auto",
   wakeSensitivity: 0.6,

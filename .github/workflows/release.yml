@@ -1,7 +1,8 @@
-# Builds the Windows installer on GitHub's servers.
-#  - Push a tag like v1.0.0  →  the installer is attached to a GitHub Release automatically.
-#  - Or run it by hand from the "Actions" tab (the installer is then available as a downloadable artifact).
-name: Build Windows installer
+# Builds the installers on GitHub's servers:
+#   Windows → Parley-Setup-x.y.z.exe        macOS → Parley-x.y.z-arm64.dmg (Apple Silicon) + Parley-x.y.z-x64.dmg (Intel)
+#  - Push a tag like v1.0.0  →  the installers are attached to a GitHub Release automatically.
+#  - Or run it by hand from the "Actions" tab (the installers are then downloadable as artifacts).
+name: Build installers
 
 on:
   push:
@@ -10,7 +11,17 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win nsis --x64
+            files: dist/*.exe
+          - os: macos-latest
+            target: --mac dmg --x64 --arm64
+            files: dist/*.dmg
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write
     steps:
@@ -25,16 +36,16 @@ jobs:
         run: npm ci
 
       - name: Build installer
-        run: npx electron-builder --win nsis --x64 --publish never
+        run: npx electron-builder ${{ matrix.target }} --publish never
 
       - name: Upload installer (artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: Parley-installer
-          path: dist/*.exe
+          name: Parley-${{ runner.os }}
+          path: ${{ matrix.files }}
 
       - name: Attach installer to the release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.exe
+          files: ${{ matrix.files }}

@@ -5,7 +5,7 @@
 @font-face { font-family: "Satoshi"; src: url("../../assets/fonts/Satoshi-Black.otf") format("opentype"); font-weight: 900; font-display: swap; }
 html, body {
   margin: 0; height: 100%; overflow: hidden; background: transparent;
-  font: 400 13.5px/1.45 "Satoshi", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font: 400 13.5px/1.45 "Satoshi", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   user-select: none;
 }
 #kakashi { position: fixed; right: 12px; bottom: 4px; display: block; cursor: pointer; transition: opacity .4s ease, transform .4s cubic-bezier(.3, 1.4, .5, 1); transform-origin: 50% 100%; }

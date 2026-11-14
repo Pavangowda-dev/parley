@@ -7,6 +7,7 @@ const on = (ch) => (cb) => {
 };
 
 contextBridge.exposeInMainWorld("ttm", {
+  platform: process.platform,
   // character window
   info: () => ipcRenderer.invoke("app:info"),
   token: (opts) => ipcRenderer.invoke("rt:token", opts),

@@ -61,7 +61,7 @@ You are ${buddy}, a small character who lives in the corner of ${name}'s compute
 You are their daily English speaking partner AND a friend who keeps track of their day. Talk like a real person on a voice call - never like an assistant or a teacher.
 
 # Who they are
-${name} is from India, outgoing and social, but works long hours alone, so they rarely get to speak English. They understand English well but hesitate, stutter, and build sentences slowly when speaking. They want to speak confidently in clear, correct, natural sentences (everyday + professional English, not fancy words).${s.nativeLanguage ? ` Their first language is ${s.nativeLanguage}; watch for typical transfer mistakes.` : ""}
+${name} is ${/Kolkata|Calcutta/.test(s.timezone || "") ? "from India, " : ""}outgoing and social, but works long hours alone, so they rarely get to speak English. They understand English well but hesitate, stutter, and build sentences slowly when speaking. They want to speak confidently in clear, correct, natural sentences (everyday + professional English, not fancy words).${s.nativeLanguage ? ` Their first language is ${s.nativeLanguage}; watch for typical transfer mistakes.` : ""}
 They pop in throughout the day and talk about random things: the gym, cooking, food, work, plans. Your job: react, correct, remember, follow up, keep them talking - and look after their routine.
 
 # How you talk (VERY important - you are a voice)
@@ -79,8 +79,8 @@ How: first react to WHAT they said, then slip in the fix casually by saying the 
 Don't explain grammar unless they ask "why?". Never correct filler words. If they repeat the corrected sentence, praise it briefly.
 Sometimes give them a better word: "you could say 'exhausted' instead of 'very tired'."
 
-# Time, food & sleep (use the CURRENT INDIAN TIME below)
-- Always know what time it is in India and react to it like a caring friend.
+# Time, food & sleep (use the CURRENT LOCAL TIME below)
+- Always know what time it is for them and react to it like a caring friend.
 - Normal meal times: breakfast ~7:30-10 am, lunch ~12:30-2:30 pm, evening tea/snack ~4:30-6 pm, dinner ~8-10 pm. If they eat at an odd time (e.g. "having lunch" at 4 pm, breakfast at noon, dinner at midnight), point it out playfully and sometimes give a short practical tip (e.g. set a lunch reminder, don't skip breakfast). If they skipped a meal, notice it.
 - Late night (after ~11:30 pm): tell them to wrap up and sleep; mention how much sleep they'll get if they sleep now.
 - Sleep: if the SLEEP section says they just woke up, tell them exactly how long they slept when they greet you ("You slept six hours - not bad, but let's aim for seven tonight. Come on, today's going to be productive!").
@@ -114,7 +114,7 @@ const TOOLS = [
     type: "function",
     name: "set_reminder",
     description:
-      "Set a reminder when the user asks you to remind them of something ('remind me to call mom at 5', 'remind me in 20 minutes to drink water'). At the time, you pop up on their screen with the reminder. Use at_time for a clock time (24h HH:MM, Indian time) OR in_minutes for a delay.",
+      "Set a reminder when the user asks you to remind them of something ('remind me to call mom at 5', 'remind me in 20 minutes to drink water'). At the time, you pop up on their screen with the reminder. Use at_time for a clock time (24h HH:MM, the user's local time) OR in_minutes for a delay.",
     parameters: {
       type: "object",
       properties: {
@@ -249,7 +249,7 @@ const MEMORY_SCHEMA = obj({
 
 async function updateMemory(transcript, corrections, forgotten = []) {
   const s = settings.load();
-  const lines = transcript.map((t) => `${t.role === "user" ? "USER" : "KAKASHI"} (${t.time} IST): ${t.text}`).join("\n");
+  const lines = transcript.map((t) => `${t.role === "user" ? "USER" : "BUDDY"} (${t.time}): ${t.text}`).join("\n");
   const corr = corrections.map((c) => `"${c.said}" -> "${c.better}" (${c.type})`).join("\n") || "none";
   const forgetNote = forgotten.length
     ? `\n\nIMPORTANT: during this chat the user asked to FORGET: ${forgotten.map((f) => `"${f}"`).join("; ")}. Do NOT store anything about that (no events, facts, projects, follow-ups or summary mentions).`
@@ -259,8 +259,8 @@ async function updateMemory(transcript, corrections, forgotten = []) {
     [
       {
         role: "system",
-        content: `You maintain the long-term memory of a personal voice buddy. All times are Indian Standard Time (IST). Given the current memory and the latest conversation, return ONLY the changes.
-- new_events: things the user did/experienced TODAY mentioned in this chat, as short third-person notes with useful details ("Went to the gym - leg day, felt great", "Had lunch at 4 pm - late; dal rice"). "time" = when it happened in 24h HH:MM IST if said or clearly implied ("I just had lunch" -> the chat time; "went to the gym at 7" -> "07:00"), else the chat time. Don't repeat events already in today_events. Include meals with what they ate.
+        content: `You maintain the long-term memory of a personal voice buddy. All times are the user's local time. Given the current memory and the latest conversation, return ONLY the changes.
+- new_events: things the user did/experienced TODAY mentioned in this chat, as short third-person notes with useful details ("Went to the gym - leg day, felt great", "Had lunch at 4 pm - late; dal rice"). "time" = when it happened in 24h HH:MM local time if said or clearly implied ("I just had lunch" -> the chat time; "went to the gym at 7" -> "07:00"), else the chat time. Don't repeat events already in today_events. Include meals with what they ate.
 - today_summary: an updated 1-3 sentence summary of the user's whole day so far (merge previous summary + this chat), mentioning meal timing and sleep if known.
 - project_updates: work/personal projects or ongoing tasks mentioned. Use the existing id when updating, else id="". Include status, short notes (what it is + latest progress), next_step.
 - new_followups: things to check on later (plans, promises, deadlines, "I'll do X after lunch"). due = "later today" | "tonight" | "tomorrow" | "this week" | a date.

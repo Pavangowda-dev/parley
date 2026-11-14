@@ -28,6 +28,7 @@ function register(mode, callback, log) {
 }
 
 function label(mode) {
+  if (process.platform === "darwin") return { "ctrl+alt+space": "⌃⌥Space", "ctrl+shift+space": "⌃⇧Space", "ctrl+alt+k": "⌃⌥K" }[normalize(mode)];
   return { "ctrl+alt+space": "Ctrl+Alt+Space", "ctrl+shift+space": "Ctrl+Shift+Space", "ctrl+alt+k": "Ctrl+Alt+K" }[normalize(mode)];
 }
 

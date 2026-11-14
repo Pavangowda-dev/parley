@@ -13,7 +13,7 @@ Use `npm start`, not `electron .`. The start script clears `ELECTRON_RUN_AS_NODE
 ## Where things live
 - `src/main/`: the Electron main process (AI calls, memory, settings, wake word, hotkey, windows).
 - `src/renderer/`: the character engine (`agentkit.js`) and the 12 characters (`agentkit-styles.js`), the voice session (`mascot.js`) and the panel (`panel.*`).
-- Your data lives in `%APPDATA%\Parley\`: `memory.json`, `settings.json`, `parley.log` and `wake-log.txt`.
+- Your data lives in `%APPDATA%\Parley\` (Windows) or `~/Library/Application Support/Parley/` (macOS): `memory.json`, `settings.json`, `parley.log` and `wake-log.txt`.
 
 ## Handy test switches (environment variables)
 These are set before running `electron .` with the project folder as the argument:
@@ -22,6 +22,10 @@ These are set before running `electron .` with the project folder as the argumen
 |---|---|
 | `TTM_AUTOHIDE_SEC=20` | Hide after 20 s instead of the configured minutes. |
 | `TTM_SELFTEST_WAKE_WAV=path.wav`, `TTM_SELFTEST_AFTER_SEC=30` | Feeds a recorded "Hey <name>" clip through the real wake-word path after 30 s. Combine with the `--mute-audio` flag. |
+
+## Platforms
+- Parley runs on **Windows and macOS**. Platform-specific code is guarded with `IS_WIN` / `IS_MAC` in `src/main/main.js`.
+- When you change something OS-related (startup, tray, hotkeys, permissions, file paths), check both platforms or say which one you tested in the PR.
 
 ## Guidelines
 - **No low-level keyboard or mouse hooks.** They can freeze laptop touchpads. Use Electron's `globalShortcut`.
