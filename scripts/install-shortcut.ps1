@@ -18,7 +18,7 @@ foreach ($dir in @([Environment]::GetFolderPath("Desktop"), [Environment]::GetFo
   $lnk.Arguments = "`"$root`""
   $lnk.WorkingDirectory = $root
   if (Test-Path $icon) { $lnk.IconLocation = $icon }
-  $lnk.Description = "Parley - your English speaking buddy"
+  $lnk.Description = "Parley - your AI companion"
   $lnk.Save()
   Write-Host "Created $dir\Parley.lnk"
 }

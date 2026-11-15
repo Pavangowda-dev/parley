@@ -73,7 +73,7 @@
     if (tab === "dashboard") return renderDashboard(await window.ttm.getAnalytics(), s);
     if (tab === "settings") return renderSettings(s);
     const m = await window.ttm.getMemory();
-    if (tab === "today") renderToday(m);
+    if (tab === "today") renderToday(m, s);
     if (tab === "projects") renderProjects(m);
     if (tab === "memory") renderMemory(m);
   }
@@ -176,13 +176,14 @@
     const delta = k.accuracy7 != null && k.accuracyPrev7 != null ? k.accuracy7 - k.accuracyPrev7 : null;
     const now = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", hour12: true }).format(new Date());
     const empty = !k.chats;
+    const coach = !!s.englishCoach;
 
     main.innerHTML = `<div class="page">
       <div class="eyebrow"><span>Dashboard</span><span class="sep"></span><span>${esc(now)}</span></div>
       <h1 class="display">${greeting(s.name)}</h1>
       <p class="lede">${empty
         ? `Say <b>“Hey ${esc(BN)}”</b> or press <b>${esc(MAC ? ({ "ctrl+shift+space": "⌃⇧Space", "ctrl+alt+k": "⌃⌥K" }[s.hotkey] || "⌃⌥Space") : ({ "ctrl+shift+space": "Ctrl + Shift + Space", "ctrl+alt+k": "Ctrl + Alt + K" }[s.hotkey] || "Ctrl + Alt + Space"))}</b> and tell ${esc(BN)} about your day. Your speaking stats will build up here.`
-        : `This week you spoke for <b>${weekMin} minutes</b> across <b>${weekChats} conversation${weekChats === 1 ? "" : "s"}</b>${k.accuracy7 != null ? `, with <b>${k.accuracy7}%</b> of your sentences correct` : ""}. ${k.streak > 1 ? `You're on a <b>${k.streak}-day streak</b>, so keep it going.` : "Talk every day to build a streak."}`}</p>
+        : `This week you spoke for <b>${weekMin} minutes</b> across <b>${weekChats} conversation${weekChats === 1 ? "" : "s"}</b>${coach && k.accuracy7 != null ? `, with <b>${k.accuracy7}%</b> of your sentences correct` : ""}. ${k.streak > 1 ? `You're on a <b>${k.streak}-day streak</b>, so keep it going.` : "Talk every day to build a streak."}`}</p>
 
       ${(() => {
         const goal = s.dailyGoalMin || 10, done = a.todayMinutes || 0, pct = Math.min(100, Math.round((done / goal) * 100));
@@ -195,8 +196,9 @@
         <div class="card kpi"><div class="label">Speaking time</div><div class="value">${num(k.totalMinutes)}<small>min</small></div><div class="foot">${k.chats} conversations</div></div>
         <div class="card kpi"><div class="label">Words spoken</div><div class="value">${num(k.totalWords)}</div><div class="foot">${k.wpm ? `${k.wpm} words / min` : "pace appears after a few chats"}</div></div>
         <div class="card kpi"><div class="label">Vocabulary</div><div class="value">${num(k.vocab)}<small>words</small></div><div class="foot">unique words you've used</div></div>
-        <div class="card kpi"><div class="label">Sentence accuracy</div><div class="value">${k.accuracy7 ?? k.accuracy ?? "–"}<small>${k.accuracy7 != null || k.accuracy != null ? "%" : ""}</small></div>
-          <div class="foot">${delta != null ? `<span class="delta ${delta >= 0 ? "up" : ""}">${delta >= 0 ? "▲" : "▼"} ${Math.abs(delta)} pts</span> vs last week` : "last 7 days"}</div></div>
+        ${coach ? `<div class="card kpi"><div class="label">Sentence accuracy</div><div class="value">${k.accuracy7 ?? k.accuracy ?? "–"}<small>${k.accuracy7 != null || k.accuracy != null ? "%" : ""}</small></div>
+          <div class="foot">${delta != null ? `<span class="delta ${delta >= 0 ? "up" : ""}">${delta >= 0 ? "▲" : "▼"} ${Math.abs(delta)} pts</span> vs last week` : "last 7 days"}</div></div>`
+        : `<div class="card kpi"><div class="label">Chats this week</div><div class="value">${weekChats}</div><div class="foot">last 7 days</div></div>`}
         <div class="card kpi"><div class="label">Avg sleep</div><div class="value">${k.avgSleep != null ? `${k.avgSleep}<small>h</small>` : "–"}</div><div class="foot">last 14 nights · target 7h</div></div>
       </div>
 
@@ -207,8 +209,10 @@
 
       <div class="section grid g-2">
         <div>
-          <div class="section-head"><h2>Accuracy</h2><span class="meta">% of sentences without a correction</span></div>
-          <div class="card">${chartOrEmpty(lineChart(ser, "accuracy", { fmt: (v) => `${Math.round(v)}%`, max: 100, w: 460, H: 230 }), "Appears after two days of conversations.")}</div>
+          ${coach ? `<div class="section-head"><h2>Accuracy</h2><span class="meta">% of sentences without a correction</span></div>
+          <div class="card">${chartOrEmpty(lineChart(ser, "accuracy", { fmt: (v) => `${Math.round(v)}%`, max: 100, w: 460, H: 230 }), "Appears after two days of conversations.")}</div>`
+          : `<div class="section-head"><h2>Conversations <em>per day</em></h2><span class="meta">How often you talk</span></div>
+          <div class="card">${chartOrEmpty(barChart(ser, "chats", { tipFmt: (v) => `${v} chat${v === 1 ? "" : "s"}`, w: 460, H: 230 }), "Your conversations appear here.")}</div>`}
         </div>
         <div>
           <div class="section-head"><h2>Sleep</h2><span class="meta">Hours per night, from “good night” to “good morning”</span></div>
@@ -232,28 +236,29 @@
         <div class="card">${chartOrEmpty(heatmap(a.heat), "Your talking rhythm appears here.")}</div>
       </div>
 
-      <div class="section grid g-3">
+      ${coach ? `<div class="section grid g-3">
         <div class="card"><div class="card-title"><span>Mistake types</span><span>${k.corrections30} in 30 days</span></div>${hbars(a.mistakeTypes, { empty: "No corrections yet. Nice!" })}</div>
         <div class="card"><div class="card-title"><span>Filler words</span><span>30 days</span></div>${hbars(a.fillers, { empty: "No filler words detected." })}</div>
         <div class="card"><div class="card-title"><span>Patterns to fix</span><span>tracked by ${esc(BN)}</span></div>
           ${a.patterns.length ? `<div class="list">${a.patterns.map((p, i) => `<div class="row"><span class="muted small" style="width:18px">${String(i + 1).padStart(2, "0")}</span><span class="grow">${esc(p)}</span></div>`).join("")}</div>` : `<div class="empty">${esc(BN)} will spot your recurring mistakes here.</div>`}</div>
-      </div>
+      </div>` : ""}
 
       <div class="section grid g-3">
-        <div class="card span-2"><div class="card-title"><span>Your most-used words</span><span>all time</span></div>
+        <div class="card ${coach ? "span-2" : "span-3"}"><div class="card-title"><span>Your most-used words</span><span>all time</span></div>
           ${a.topWords.length ? `<div class="chips">${a.topWords.map((w) => `<span class="chip" data-tip='<b>${w.n}</b> <span class="t-sub">times</span>'>${esc(w.w)} <b>${w.n}</b></span>`).join("")}</div>` : `<div class="empty">Start talking to see your vocabulary.</div>`}
           <div class="card-title" style="margin-top:26px"><span>New words this month</span><span>${a.newWords.length}</span></div>
           ${a.newWords.length ? `<div class="chips">${a.newWords.map((w) => `<span class="chip accent" data-tip='<span class="t-sub">first used</span> <b>${esc(fmtDay(w.day))}</b>'>${esc(w.w)}</span>`).join("")}</div>` : `<div class="empty">Words you use for the first time appear here.</div>`}
         </div>
-        <div class="card"><div class="card-title"><span>Better words to learn</span><span>from corrections</span></div>
+        ${coach ? `<div class="card"><div class="card-title"><span>Better words to learn</span><span>from corrections</span></div>
           ${a.betterWords.length ? `<div class="wordlist">${a.betterWords.map((b) => `<div class="wordrow"><span class="w">${esc(b.text)}</span><span class="d">${esc(fmtDay(b.day))}</span></div>`).join("")}</div>` : `<div class="empty">${esc(BN)}'s word suggestions are collected here.</div>`}
-        </div>
+        </div>` : ""}
       </div>
     </div>`;
   }
 
   // ================================================================== Today
-  function renderToday(m) {
+  function renderToday(m, s = {}) {
+    const coach = !!s.englishCoach;
     const k = m.todayKey;
     const d = m.days[k] || { summary: "", events: [], chats: 0, speakingSec: 0 };
     const corr = m.corrections.filter((c) => c.day === k).reverse();
@@ -269,8 +274,10 @@
         <div class="card kpi"><div class="label">Sleep</div><div class="value" style="font-size:32px">${sleep ? fmtH(sleep.hours) : m.sleepPending ? "zzz" : "–"}</div><div class="foot">${sleep ? `${esc(sleep.sleptAt)} → ${esc(sleep.wokeAt)}` : "say good night to track"}</div></div>
         <div class="card kpi"><div class="label">Conversations</div><div class="value">${d.chats || 0}</div><div class="foot">${Math.round((d.speakingSec || 0) / 6) / 10} min spoken</div></div>
         <div class="card kpi"><div class="label">Words</div><div class="value">${num(st.words || 0)}</div><div class="foot">${st.sentences || 0} sentences</div></div>
-        <div class="card kpi"><div class="label">Accuracy</div><div class="value">${st.sentences ? Math.round((st.clean / st.sentences) * 100) : "–"}<small>${st.sentences ? "%" : ""}</small></div><div class="foot">sentences without a fix</div></div>
-        <div class="card kpi"><div class="label">Corrections</div><div class="value">${corr.length}</div><div class="foot">read them aloud once</div></div>
+        ${coach ? `<div class="card kpi"><div class="label">Accuracy</div><div class="value">${st.sentences ? Math.round((st.clean / st.sentences) * 100) : "–"}<small>${st.sentences ? "%" : ""}</small></div><div class="foot">sentences without a fix</div></div>
+        <div class="card kpi"><div class="label">Corrections</div><div class="value">${corr.length}</div><div class="foot">read them aloud once</div></div>`
+        : `<div class="card kpi"><div class="label">Reminders</div><div class="value">${(m.reminders || []).filter((r) => !r.done).length}</div><div class="foot">coming up</div></div>
+        <div class="card kpi"><div class="label">Projects</div><div class="value">${m.projects.filter((p) => p.status === "active" || p.status === "blocked").length}</div><div class="foot">in progress</div></div>`}
         <div class="card kpi"><div class="label">Follow-ups</div><div class="value">${m.followups.filter((f) => !f.done).length}</div><div class="foot">open</div></div>
       </div>
 
@@ -285,8 +292,10 @@
           </div>
         </div>
         <div>
-          <div class="section-head"><h2>Say it <em>like this</em></h2><span class="meta">Today's corrections</span></div>
-          <div class="card">${corr.length ? corr.map(corrHTML).join("") : `<div class="empty">No corrections yet today.</div>`}</div>
+          ${coach ? `<div class="section-head"><h2>Say it <em>like this</em></h2><span class="meta">Today's corrections</span></div>
+          <div class="card">${corr.length ? corr.map(corrHTML).join("") : `<div class="empty">No corrections yet today.</div>`}</div>`
+          : `<div class="section-head"><h2>On your <em>plate</em></h2><span class="meta">Follow-ups ${esc(BN)} will ask about</span></div>
+          <div class="card"><div class="list">${m.followups.filter((f) => !f.done).map((f) => `<div class="row"><div class="grow"><div class="title">${esc(f.text)}<span class="tag accent">${esc(f.due)}</span></div></div></div>`).join("") || `<div class="empty">Nothing pending. Tell ${esc(BN)} your plans and they'll show up here.</div>`}</div></div>`}
         </div>
       </div>
 
@@ -294,7 +303,7 @@
         <div class="card"><div class="list">${(m.reminders || []).filter((r) => !r.done).sort((x, y) => x.dueAt.localeCompare(y.dueAt)).map((r) => `
           <div class="row"><span class="tag accent" style="margin:0">${esc(new Date(r.dueAt).toLocaleTimeString("en-IN", { timeZone: TZ, hour: "numeric", minute: "2-digit", hour12: true }))}</span>
           <span class="grow">${esc(r.text)}</span><span class="actions"><button class="icon-btn del" data-del-rem="${esc(r.id)}" title="Delete">✕</button></span></div>`).join("")}</div></div></div>` : ""}
-      ${older.length ? `<div class="section"><div class="section-head"><h2>Earlier <em>corrections</em></h2><span class="meta">Last 30 days</span></div><div class="card">${older.map(corrHTML).join("")}</div></div>` : ""}
+      ${coach && older.length ? `<div class="section"><div class="section-head"><h2>Earlier <em>corrections</em></h2><span class="meta">Last 30 days</span></div><div class="card">${older.map(corrHTML).join("")}</div></div>` : ""}
     </div>`;
     const edit = async (op) => { await window.ttm.editMemory(op); render(); };
     $$("[data-del-event]").forEach((b) => b.onclick = () => edit({ type: "event.delete", day: k, id: b.dataset.delEvent }));
@@ -600,7 +609,6 @@
         <div class="card">
 ${s.hasKey ? keyField : ""}          <div class="field"><label>Buddy's name<small>The wake phrase follows it: “Hey ${esc(BN)}”. Pick a clear, 2–3 syllable name.</small></label><div class="ctl"><input type="text" data-text="buddyName" value="${esc(s.buddyName)}" maxlength="24" /></div></div>
           <div class="field"><label>Your name</label><div class="ctl"><input type="text" data-text="name" value="${esc(s.name)}" /></div></div>
-          <div class="field"><label>First language<small>Helps catch typical mistakes</small></label><div class="ctl"><input type="text" data-text="nativeLanguage" value="${esc(s.nativeLanguage)}" placeholder="e.g. Telugu, Hindi, Kannada" /></div></div>
         </div></div>
 
       <div class="settings-group"><h3>Presence</h3><p>When ${esc(BN)} is on your screen.</p>
@@ -624,13 +632,25 @@ ${s.hasKey ? keyField : ""}          <div class="field"><label>Buddy's name<smal
           <div class="field"><label>Sensitivity</label>${seg("wakeSensitivity", [[0.45, "Low"], [0.6, "Medium"], [0.75, "High"]], s.wakeSensitivity)}</div>
         </div></div>
 
-      <div class="settings-group"><h3>Voice & coaching</h3>
+      <div class="settings-group"><h3>Personality</h3><p>${esc(BN)} has real feelings: happy for you, worried when you skip meals, a little annoyed when you break promises, and always on your side.</p>
+        <div class="card">
+          <div class="field"><label>Talks to you like a…</label>${seg("relationship", [["friend", "Best friend"], ["parent", "Caring parent"], ["sibling", "Older sibling"], ["mentor", "Mentor"]], s.relationship || "friend")}</div>
+          <div class="field"><label>Honesty<small>How hard ${esc(BN)} pushes you to keep your promises</small></label>${seg("coachStyle", [["gentle", "Gentle"], ["push", "Pushes me"], ["tough", "Tough love"]], s.coachStyle)}</div>
+        </div></div>
+
+      <div class="settings-group"><h3>English coaching</h3><p>Optional. Turn it on if you want to improve your spoken English while you chat.</p>
+        <div class="card">
+          <div class="field"><label>Correct my English<small>${s.englishCoach ? "On: gentle corrections, a correction bubble, practice mode (“quiz me”) and English stats on the dashboard" : "Off: just a companion who talks with you in any language"}</small></label>${seg("englishCoach", [[false, "Off"], [true, "On"]], !!s.englishCoach)}</div>
+          ${s.englishCoach ? `
+          <div class="field"><label>How much to correct</label>${seg("correctionLevel", [["light", "Big mistakes only"], ["normal", "Normal"], ["strict", "Strict"]], s.correctionLevel)}</div>
+          <div class="field"><label>First language<small>Helps catch typical mistakes</small></label><div class="ctl"><input type="text" data-text="nativeLanguage" value="${esc(s.nativeLanguage)}" placeholder="e.g. Telugu, Hindi, Kannada" /></div></div>` : ""}
+        </div></div>
+
+      <div class="settings-group"><h3>Voice</h3>
         <div class="card">
           <div class="field"><label>Voice<small>marin and cedar sound the most human</small></label><div class="ctl"><select data-select="voice">${voices.map((v) => `<option ${v === s.voice ? "selected" : ""}>${v}</option>`).join("")}</select></div></div>
           <div class="field"><label>Speaking speed</label>${seg("voiceSpeed", [[0.9, "Slower"], [1, "Normal"], [1.1, "Faster"]], s.voiceSpeed)}</div>
           <div class="field"><label>Reply speed<small>How long it waits when you pause</small></label>${seg("replySpeed", [["quick", "Quick"], ["balanced", "Balanced"], ["patient", "Patient"]], s.replySpeed)}</div>
-          <div class="field"><label>Coach style</label>${seg("coachStyle", [["gentle", "Gentle"], ["push", "Pushes me"], ["tough", "Tough love"]], s.coachStyle)}</div>
-          <div class="field"><label>Corrections</label>${seg("correctionLevel", [["light", "Big mistakes only"], ["normal", "Normal"], ["strict", "Strict"]], s.correctionLevel)}</div>
         </div></div>
 
     </div>`;
@@ -649,7 +669,7 @@ ${s.hasKey ? keyField : ""}          <div class="field"><label>Buddy's name<smal
       v = v === "true" ? true : v === "false" ? false : isNaN(+v) ? v : +v;
       await save({ [g.dataset.seg]: v });
       $$("button", g).forEach((x) => x.classList.toggle("on", x === b));
-      if (g.dataset.seg === "wakeWord") render();
+      if (g.dataset.seg === "wakeWord" || g.dataset.seg === "englishCoach") render();
     })));
     $("#save-key").onclick = async () => {
       const k = $("#key").value.trim(); if (!k) return;

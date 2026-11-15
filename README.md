@@ -1,7 +1,8 @@
 <h1 align="center">Parley</h1>
 
-<p align="center"><b>A voice buddy that lives in the corner of your screen and helps you speak English with confidence.</b><br>
-Say <i>"Hey Aira"</i> (or any name you choose), talk about your day, and your buddy talks back like a friend. It corrects your English as you go, remembers your life and keeps you on track.</p>
+<p align="center"><b>An AI companion that lives in the corner of your screen, remembers your life and talks with you like someone who cares.</b><br>
+Say <i>"Hey Aira"</i> (or any name you choose) and talk about anything. It listens, reacts with real feelings, remembers your day, nags you about lunch, celebrates your wins and keeps you on track.<br>
+Want to improve your spoken English too? Switch on <b>English coaching</b> and it gently corrects you as you talk.</p>
 
 <p align="center">Windows & macOS · runs on your own computer · no account, no server · all you need is an OpenAI API key</p>
 
@@ -29,36 +30,47 @@ Say <i>"Hey Aira"</i> (or any name you choose), talk about your day, and your bu
 
 ## Why this exists
 
-Many people **understand English well but freeze when they have to speak it**. They hesitate, stutter and build sentences slowly. The fix is daily speaking practice, but busy people rarely have someone to talk to.
+Most of us spend the whole day at a screen, and many people rarely get to just *talk* to someone who knows what their day looks like. Parley gives you that someone: **Aira**, a small animated companion on your desktop (rename it to anything you like).
 
-Parley gives you that someone: **Aira**, a small animated buddy on your desktop (rename it to anything you like). Whenever you have a minute, after the gym, while cooking, or between work tasks, you call it and just talk. It listens, answers naturally, quietly fixes your mistakes, and remembers everything, so the next conversation picks up where you left off.
+Call it after the gym, while cooking, between work tasks or before bed, and just talk. It remembers everything, so the next conversation picks up where you left off. It isn't a polite assistant. It has a personality and feelings: it's happy for you, worried when you skip meals, a little annoyed when you break a promise again, proud when you finish something. You choose whether it talks to you like a **best friend**, a **caring parent**, an **older sibling** or a **mentor**.
 
 ```
-You (8:10 am):   "Hey Aira, I went to gym today and it was really good for me, I worked on legs."
-Aira:            "Leg day, nice! Quick one: you'd say 'I trained legs today.' So what's the plan for work?"
-                 [bubble]  Say it like this: "I went to the gym today and it was really good. I trained legs."
+You (8:10 am):   "Hey Aira, I went to the gym today, leg day, felt amazing."
+Aira:            "Leg day AND you're smiling? Who are you?! What's the plan for work?"
 
-You (4:05 pm):   "I am having lunch now, I cooked dal rice."
-Aira:            "Lunch at four? That's basically snack time! Want me to remind you at one tomorrow?"
+You (4:05 pm):   "I'm having lunch now, I cooked dal rice."
+Aira:            "Lunch at four?! You did it again. Want me to remind you at one tomorrow?"
+
+You (6:30 pm):   "The client loved the demo, they're signing!"
+Aira:            "No way, that's huge! I'm so proud of you. Now go eat something, please."
 
 You (12:40 am):  "Okay bye, I'm going to sleep."
-Aira:            "Good night! I'll check how long you slept."         (it hangs up by itself)
+Aira:            "Good night! I'll check how long you slept."          (it hangs up by itself)
 
 You (7:05 am):   "Hey Aira, good morning!"
 Aira:            "Morning! Six hours twenty-five. Let's aim for seven tonight. Big day ahead?"
 ```
+
+**Optional: English coaching.** Many people *understand* English well but freeze when they speak it. Turn on **Settings → English coaching** and Aira also corrects your sentences casually as you talk ("Quick one: you'd say *'I trained legs today'*"). You also get correction bubbles, a "quiz me" practice mode and English stats on the dashboard.
 
 ---
 
 ## What it can do
 
 ### 🗣️ Real conversations
-- **Natural voice.** It hears your actual voice and answers by voice, in under a second. You can interrupt it any time.
+- **Natural voice.** It hears your actual voice and answers by voice, in under a second.
+- **Interrupt naturally.** Talk over it and it stops, then answers what you just said, knowing exactly how much of its last sentence you heard. Claps, coughs, sneezes and taps don't cut it off.
+- **Any language.** With English coaching off, it replies in whatever language you speak to it.
 - **Starting a chat.** Say **"Hey Aira"** (or whatever name you give it), press **Ctrl + Alt + Space** (Mac: **⌃⌥Space**), or click it.
 - **Ending a chat.** Say **"bye"**, **"talk later"** or **"good night"** and it says goodbye and hangs up. It also hangs up by itself after a silence.
 - **Patient listening.** Pause to think as long as you need; it waits until you've finished your thought.
 
-### ✏️ English coaching
+### ❤️ A personality, not an assistant
+- **Real feelings.** Joy, excitement, concern, playful anger, humour, pride and comfort when you're down, all at the right moments.
+- **Your choice of relationship.** **Best friend**, **caring parent**, **older sibling** or **mentor** (Settings → Personality).
+- **Honesty level.** *Gentle*, *Pushes me* or *Tough love*: how hard it holds you to your promises.
+
+### ✏️ English coaching (optional: Settings → English coaching)
 - **Gentle corrections.** It repeats your sentence the right way, casually, like a friend would.
 - **Correction bubbles.** A small bubble shows the exact fix, a short reason and a better word to use.
 - **Practice mode.** Say *"quiz me"* and it drills the mistakes **you** actually made this week.
@@ -78,8 +90,8 @@ Aira:            "Morning! Six hours twenty-five. Let's aim for seven tonight. B
 - **Feels alive.** Real lip-sync from its voice, eyes that follow your mouse across the whole screen, blinking, breathing and bouncy physics.
 - **Rename it.** "Hey Jarvis" works if you call it Jarvis.
 
-### 📊 A dashboard that shows your progress
-Streak, speaking minutes, words spoken, vocabulary size, sentence accuracy, sleep, a daily goal, 30-day charts, a "when you talk" heatmap, mistake types, filler words, your most-used words and new words. [More below.](#the-dashboard)
+### 📊 A dashboard of your life
+Streak, speaking minutes, conversations, words spoken, vocabulary, sleep, a daily goal, 30-day charts, a "when you talk" heatmap, your most-used words, today's timeline, reminders and follow-ups. With English coaching on, you also get sentence accuracy, mistake types, filler words and words to learn. [More below.](#the-dashboard)
 
 ### 🪶 Light on your computer
 - **Hidden when quiet.** It fades away after a few quiet minutes and nothing is drawn while it's hidden.
@@ -123,8 +135,8 @@ Step by step, one conversation looks like this:
 
 1. **Waiting.** While it's idle, a light listener checks short bursts of speech for its name. Long talking (videos, calls) is ignored.
 2. **Waking up.** When it hears *"Hey Aira"* it pops up with a little hop and opens a live voice connection to OpenAI. Before the first word, it gets a compact summary of your memory: the local time, what you did today, how you slept, your projects, your reminders and your usual mistakes.
-3. **Talking.** You speak naturally and it hears your real voice and answers by voice. Under the hood it can use three tools: **set a reminder**, **forget something** and **end the conversation**.
-4. **Correcting.** Each thing you say is also turned into text and checked for grammar. If there's a mistake, a bubble shows the fix.
+3. **Talking.** You speak naturally and it hears your real voice and answers by voice. Claps, coughs and taps are filtered out, and real interruptions stop it mid-sentence. Under the hood it can use three tools: **set a reminder**, **forget something** and **end the conversation**.
+4. **Correcting (English coaching on).** Each thing you say is also turned into text and checked for grammar. If there's a mistake, a bubble shows the fix.
 5. **Remembering.** When the chat ends, a separate model reads it and updates its memory: new events, projects, follow-ups and mistake patterns.
 6. **Going quiet.** After a few quiet minutes it fades away until you call it again.
 
@@ -267,12 +279,13 @@ A key saved in the app is **encrypted** (Windows: with your user account; macOS:
 | You say | What happens |
 |---|---|
 | "Hey Aira" | It wakes up and starts talking with you |
-| *anything about your day* | It reacts, asks follow-up questions and corrects your English |
-| "Quiz me" / "Let's practise my mistakes" | A short drill based on your real mistakes |
+| *anything about your day* | It reacts (with feeling), asks follow-up questions and remembers it. With English coaching on, it also corrects you. |
+| "Quiz me" / "Let's practise my mistakes" | A short drill based on your real mistakes (English coaching on) |
 | "Remind me to call mom at 5" / "…in 20 minutes" | It pops up at that time with a reminder |
 | "Forget what I said about the test" | Deletes every related memory |
 | "I finished the project!" | The project is marked done, and it celebrates |
-| "Why is that wrong?" | It explains the grammar simply |
+| "I'm feeling low today" | It slows down and comforts you first, with advice only if you want it |
+| "Why is that wrong?" | It explains the grammar simply (English coaching on) |
 | "Good night, I'm going to sleep" | Records your sleep, says good night and hangs up |
 | "Good morning" (the next day) | It tells you how long you slept |
 | "Bye" / "Talk later" | It says goodbye and hangs up |
@@ -298,10 +311,12 @@ Right-click the buddy → **Dashboard**, or click the tray icon (Windows) / menu
 | Section | What you can change |
 |---|---|
 | **Character** | Choose one of 12 characters and its colours (themes or custom), with a live preview. Saved instantly. |
-| **Basics** | Your OpenAI key, the **buddy's name** (the wake phrase follows it: "Hey Jarvis"), your name, and your first language (helps it spot typical mistakes). |
+| **Basics** | Your OpenAI key, the **buddy's name** (the wake phrase follows it: "Hey Jarvis") and your name. |
 | **Presence** | Auto-hide delay, daily speaking goal, the talk hotkey, how long a silence ends a chat, optional check-in bubbles, and start with Windows / at login. |
 | **Wake word** | On or off, plus optional offline mode ([below](#optional-offline-wake-word)). |
-| **Voice & coaching** | Voice (`marin` and `cedar` sound the most natural), speaking speed, how long it waits when you pause, coach style (*Gentle · Pushes me · Tough love*), and how much it corrects. |
+| **Personality** | *Talks to you like a…* best friend, caring parent, older sibling or mentor, and *Honesty* (gentle, pushes me, tough love). |
+| **English coaching** | Off by default. Turn it on for corrections, the correction bubble, practice mode and English stats, and choose how much to correct and your first language. |
+| **Voice** | Voice (`marin` and `cedar` sound the most natural), speaking speed, and how long it waits when you pause. |
 
 ---
 

@@ -22,6 +22,8 @@ const DEFAULTS = {
   wakeWord: "auto",
   wakeSensitivity: 0.6,
   picovoicePpn: "",            // path to your "Hey Kakashi" .ppn file (copied into app data)
+  englishCoach: false,         // optional English coaching (corrections, practice, English stats)
+  relationship: "friend",      // "friend" | "parent" | "sibling" | "mentor" — how the buddy talks to you
   coachStyle: "push",          // "gentle" | "push" | "tough"
   correctionLevel: "normal",   // "light" | "normal" | "strict"
   hotkey: "ctrl+alt+space",    // "ctrl+alt+space" | "ctrl+shift+space" | "ctrl+alt+k" (no keyboard/mouse hooks)
@@ -30,7 +32,7 @@ const DEFAULTS = {
   dailyGoalMin: 10,            // speaking-minutes goal shown on the dashboard
   autoHideMin: 3,              // hide Kakashi after this many quiet minutes (0 = always visible)
   nudges: false,               // optional check-in bubbles (never start a conversation by themselves)
-  settingsVersion: 4,
+  settingsVersion: 5,
   nudgeEveryMin: 120,
   activeHours: [8, 23],
   startWithWindows: true,
@@ -58,6 +60,7 @@ function load() {
   if (cache) return cache;
   let data = {};
   let unreadable = false;
+  const existedBefore = fs.existsSync(file());   // false on a brand-new install
   if (fs.existsSync(file())) {
     try {
       // strip a UTF-8 byte-order mark (added by some editors / PowerShell) before parsing
@@ -89,8 +92,11 @@ function load() {
     cache.settingsVersion = 3;
     try { fs.writeFileSync(file(), JSON.stringify(cache, null, 2)); } catch {}
   }
-  if (!unreadable && (data.settingsVersion || 0) < 4) {
-    cache.settingsVersion = 4;           // persist the v2.6 character migration
+  if (!unreadable && existedBefore && (data.settingsVersion || 0) < 5 && data.englishCoach === undefined) {
+    cache.englishCoach = true;           // v1.1: coaching became optional — existing users keep it on
+  }
+  if (!unreadable && (data.settingsVersion || 0) < 5) {
+    cache.settingsVersion = 5;           // persist the migrations above
     try { fs.writeFileSync(file(), JSON.stringify(cache, null, 2)); } catch {}
   }
   // Models are part of the app, not a user setting: always use the built-in defaults.

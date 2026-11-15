@@ -437,6 +437,7 @@ ipcMain.on("chat:line", async (_e, { role, text }) => {
   if (!chat || !text || !text.trim()) return;
   chat.lines.push({ role, text: text.trim(), time: memory.hhmm() });
   if (role !== "user") return;
+  if (!settings.load().englishCoach) return;          // English coaching off → no grammar checks (and no cost)
   if (text.trim().split(/\s+/).length < 3) return;
   const lastBuddy = [...chat.lines].reverse().find((l) => l.role === "assistant");
   try {

@@ -204,6 +204,13 @@
   let lastActivity = 0, userSpoke = false, greetTimer = null, sleepTimer = null, endTimer = null;
   let speechStartedAt = 0, speakingSec = 0, autoSleepSec = 75, connectId = 0;
   let ending = null;            // { reason, stage: 'awaitAudio' | 'awaitGoodbye' }
+  // ---- turn-taking (noise-robust barge-in) ----
+  // The server only detects speech; this window decides what counts as a real turn.
+  const BARGE_MS = 650;         // speech this long while the buddy talks = a real interruption
+  const SHORT_MS = 400;         // shorter sounds while the buddy is quiet are double-checked (clap? cough?)
+  let sessionInstructions = "";
+  let botSpeaking = false, responseActive = false, botItemId = null, botAudioStartedAt = 0;
+  let turn = null;              // { startAt, duringBot, barged, noise, verify, itemId, timer }
 
   // Warm up WebRTC once in the background: on Windows the first peer connection scans every
   // network adapter (slow with Docker/Hyper-V/VPN adapters). Doing it now makes "Hey Kakashi" connect fast.
@@ -261,6 +268,8 @@
       if (tkR.status === "rejected") throw tkR.reason;
       if (micR.status === "rejected") throw micR.reason;
       const { token, instructions, greeting, autoSleepSec: s } = tkR.value;
+      sessionInstructions = instructions;
+      botSpeaking = false; responseActive = false; botItemId = null; turn = null;
       const tReady = performance.now();
       autoSleepSec = s || 75;
       if (myId !== connectId) { micStream.getTracks().forEach((t) => t.stop()); return; }
@@ -329,38 +338,102 @@
     setTimeout(() => { if (ending) stop("bye"); }, 10000);
   }
 
+  const meaningful = (t) => ((t || "").match(/\p{L}/gu) || []).length >= 2 && !/^\W*\[?(noise|music|applause|clap|cough|sneeze|laugh)/i.test(t || "");
+  function respond() { sendEvent({ type: "response.create" }); setPhase("thinking"); }
+  function bargeIn() {
+    if (!turn || turn.barged) return;
+    turn.barged = true;
+    // Stop the voice. Clearing the output buffer also makes the server cut the buddy's last message
+    // to exactly what was heard, so the next reply knows what the user did and didn't hear.
+    if (responseActive) sendEvent({ type: "response.cancel" });
+    sendEvent({ type: "output_audio_buffer.clear" });
+    botSpeaking = false;
+    setPhase("userSpeaking");
+  }
+  function dropTurn(itemId) { if (itemId) sendEvent({ type: "conversation.item.delete", item_id: itemId }); }
+
   async function onEvent(ev) {
     switch (ev.type) {
-      case "input_audio_buffer.speech_started":
-        userSpoke = true;
+      case "input_audio_buffer.speech_started": {
         clearTimeout(greetTimer);
-        speechStartedAt = performance.now();
         lastActivity = Date.now();
-        setPhase("userSpeaking");
+        const duringBot = botSpeaking || responseActive;
+        turn = { startAt: performance.now(), duringBot, barged: false, noise: false, verify: false, itemId: null, timer: null };
+        if (duringBot) {
+          // Don't stop talking for a clap or a sneeze: only real, continuing speech interrupts.
+          const t = turn;
+          t.timer = setTimeout(() => { if (turn === t) bargeIn(); }, BARGE_MS);
+        } else {
+          userSpoke = true;
+          speechStartedAt = performance.now();
+          setPhase("userSpeaking");
+        }
         break;
-      case "input_audio_buffer.speech_stopped":
-        if (speechStartedAt) speakingSec += (performance.now() - speechStartedAt) / 1000;
-        speechStartedAt = 0;
+      }
+      case "input_audio_buffer.speech_stopped": {
         lastActivity = Date.now();
+        if (!turn) break;
+        clearTimeout(turn.timer);
+        const dur = performance.now() - turn.startAt;
+        if (turn.duringBot && !turn.barged) { turn.noise = true; break; }   // short sound over the buddy's voice → ignore
+        userSpoke = true;
+        speakingSec += dur / 1000;
+        speechStartedAt = 0;
+        turn.verify = turn.barged || dur < SHORT_MS;    // check the words before answering
         setPhase("thinking");
         break;
-      case "conversation.item.input_audio_transcription.completed":
-        window.ttm.chatLine("user", ev.transcript || "");
+      }
+      case "input_audio_buffer.committed": {
+        const t = turn;
+        if (!t) { respond(); break; }
+        t.itemId = ev.item_id;
+        if (t.noise) { dropTurn(ev.item_id); turn = null; break; }
+        if (!t.verify) { turn = null; respond(); break; }
+        // wait (briefly) for the transcript to decide: real words → answer, noise → ignore / carry on
+        t.timer = setTimeout(() => { if (turn === t) { turn = null; respond(); } }, 2500);
+        break;
+      }
+      case "conversation.item.input_audio_transcription.completed": {
+        const text = ev.transcript || "";
+        if (meaningful(text)) window.ttm.chatLine("user", text);
+        const t = turn;
+        if (t && t.itemId === ev.item_id && t.verify) {
+          clearTimeout(t.timer);
+          turn = null;
+          if (meaningful(text)) respond();
+          else {
+            dropTurn(ev.item_id);
+            if (t.barged) {
+              // it was a noise after all: pick up where we left off
+              sendEvent({ type: "response.create", response: { instructions: `${sessionInstructions}\n\n# Right now\nYou were cut off by a background noise, not by the user speaking. Continue naturally from where you stopped, in one or two short sentences.` } });
+            } else setPhase("listening");
+          }
+        }
+        break;
+      }
+      case "response.created":
+        responseActive = true;
+        break;
+      case "response.output_item.added":
+        if (ev.item && ev.item.type === "message") botItemId = ev.item.id;
         break;
       case "response.output_audio_transcript.done":
       case "response.audio_transcript.done":
         window.ttm.chatLine("assistant", ev.transcript || "");
         break;
       case "output_audio_buffer.started":
-        setPhase("speaking");
+        botSpeaking = true; botAudioStartedAt = performance.now();
+        if (!(turn && turn.barged)) setPhase("speaking");
         break;
       case "output_audio_buffer.stopped":
       case "output_audio_buffer.cleared":
+        botSpeaking = false;
         lastActivity = Date.now();
         if (ending && ending.stage === "awaitAudio") { stop("bye"); break; }
         if (phase === "speaking") setPhase("listening");
         break;
       case "response.done": {
+        responseActive = false;
         lastActivity = Date.now();
         const r = ev.response || {};
         if (r.status === "failed") {

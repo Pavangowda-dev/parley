@@ -1,8 +1,8 @@
 {
   "name": "parley",
   "productName": "Parley",
-  "version": "1.0.0",
-  "description": "Parley — a voice buddy that lives in the corner of your screen. Say \"Hey Aira\" (or any name you choose), talk about your day, and get gentle English corrections, reminders and progress stats. Windows · runs locally · just add your OpenAI key.",
+  "version": "1.1.0",
+  "description": "Parley — an AI companion that lives in the corner of your screen. Say \"Hey Aira\" (or any name you choose) and talk about anything: it remembers your day, reacts with real feelings, sets reminders and keeps you on track. Optional English coaching. Windows & macOS · runs locally · just add your OpenAI key.",
   "main": "src/main/main.js",
   "scripts": {
     "start": "node scripts/start.js",
