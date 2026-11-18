@@ -13,7 +13,8 @@ const AgentKit = (() => {
 
 const DEFAULTS = {
   maxFps: 60,
-  calmFps: 30,                   // when nothing is moving much (saves battery on a desktop pet)
+  calmFps: 24,                   // when nothing is moving much (saves battery on a desktop pet)
+  pointerBoost: true,            // mouse movement → full frame rate (the desktop buddy turns this off)
   respectReducedMotion: true,
   stateBlendTime: 0.18,
   blink: {
@@ -315,7 +316,7 @@ const Loop = {
     requestAnimationFrame(t => this.frame(t));
     const elapsed = now - this.last;
     // Full frame rate only while something is actually moving; calm idling runs at calmFps.
-    let busy = (performance.now() / 1000 - Pointer.t) < 1.5;
+    let busy = DEFAULTS.pointerBoost !== false && (performance.now() / 1000 - Pointer.t) < 1.5;
     if (!busy) for (const a of this.list) {
       if (a.state !== 'idle' || a.air.lift > 0 || a.air.launchAt >= 0 || Math.abs(a.sp.spin.v) > 0.01 || Math.abs(a.sp.rise.v) > 0.05) { busy = true; break; }
     }

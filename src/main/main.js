@@ -16,6 +16,14 @@ const MASCOT_W = 340, MASCOT_H = 300;
 // Kakashi may need to speak without a click first (wake word / hotkey)
 app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 
+// ---- Keep Parley light on busy laptops --------------------------------------------------
+// (Hardware acceleration stays ON: turning it off makes Electron render in software inside the
+//  GPU process, which measured heavier — more RAM and ~2x CPU.)
+// Cap JavaScript memory per process (Parley never needs more; prevents slow growth over days).
+app.commandLine.appendSwitch("js-flags", "--max-old-space-size=160");
+// Don't keep extra renderer processes alive "just in case".
+app.commandLine.appendSwitch("renderer-process-limit", "2");
+
 let mascotWin = null, panelWin = null, tray = null;
 let talking = false;
 let chat = null;
@@ -404,7 +412,15 @@ ipcMain.handle("rt:token", async (_e, { byVoice } = {}) => {
 });
 ipcMain.handle("rt:goodbye-instructions", (_e, reason) => ai.GOODBYE_ONLY(reason));
 
+// Idle → below-normal CPU priority, so Cursor / Chrome / your work always win.
+// During a conversation → normal priority, so the voice stays smooth.
+function setPriority(active) {
+  const prio = active ? os.constants.priority.PRIORITY_NORMAL : os.constants.priority.PRIORITY_BELOW_NORMAL;
+  for (const m of app.getAppMetrics()) { try { os.setPriority(m.pid, prio); } catch {} }
+}
+
 ipcMain.on("chat:started", () => {
+  setPriority(true);
   log("chat started");
   talking = true;
   wake.setPaused(true);
@@ -462,6 +478,7 @@ ipcMain.on("chat:goodbye", (_e, { reason }) => {
 });
 
 ipcMain.on("chat:ended", async (_e, { speakingSec = 0 } = {}) => {
+  setPriority(false);
   log(`chat ended (${speakingSec}s spoken)`);
   talking = false;
   lastActive = Date.now();
@@ -477,7 +494,7 @@ ipcMain.on("chat:ended", async (_e, { speakingSec = 0 } = {}) => {
   processPending();
 });
 
-ipcMain.on("chat:error", () => { log("chat error"); talking = false; wake.setPaused(false); refreshTrayMenu(); });
+ipcMain.on("chat:error", () => { log("chat error"); setPriority(false); talking = false; wake.setPaused(false); refreshTrayMenu(); });
 
 // Cloud wake word: short speech clips from the mascot window
 let wakeBusy = false, wakeCount = { day: "", n: 0 };
@@ -634,12 +651,13 @@ if (gotLock) app.whenReady().then(async () => {
   }
   setTimeout(reminderTick, 15000);   // catch reminders that came due while the laptop was off
   setTimeout(processPending, 5000);
+  setTimeout(() => setPriority(false), 15000);   // after the windows and audio processes have started
+  setInterval(() => { if (!talking) setPriority(false); }, 5 * 60000); // new helper processes start at normal priority
 
   if (!settings.getApiKey()) openPanel("settings");
-  // Watchdog: the window says "alive" every 20 s; if it goes silent for 75 s, rebuild it.
-  setInterval(() => {
-    if (mascotWin && mascotReady && Date.now() - lastAlive > 75000) rebuildMascot("no heartbeat for 75s");
-  }, 15000);
+  // (No heartbeat watchdog: Windows pauses hidden windows while the screen is locked, which made a
+  //  timer-based watchdog rebuild the window after every unlock. Real crashes and hangs are caught
+  //  directly by the "render-process-gone" and "unresponsive" events in createMascot.)
   // After sleep / unlock the microphone stream is often dead — tell the window to restart its listener
   let powerTimer = null;
   for (const ev of ["resume", "unlock-screen"]) powerMonitor.on(ev, () => {

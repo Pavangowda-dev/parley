@@ -36,10 +36,11 @@
     // Low-power capture: echo cancellation / noise suppression are the expensive parts of
     // Chrome's audio pipeline and aren't needed just to spot "Hey Kakashi".
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true, channelCount: 1 } });
-    ctx = new AudioContext();
+    // 16 kHz: what speech recognition uses anyway → 3x less audio to process than 48 kHz, no resampling
+    ctx = new AudioContext({ sampleRate: 16000 });
     src = ctx.createMediaStreamSource(stream);
-    proc = ctx.createScriptProcessor(4096, 1, 1);  // ~11 callbacks/s
-    const chunkSec = 4096 / ctx.sampleRate;
+    proc = ctx.createScriptProcessor(2048, 1, 1);  // ~8 small callbacks/s
+    const chunkSec = 2048 / ctx.sampleRate;
     let floor = 0.004, inSpeech = false, seg = [], speechSec = 0, silenceSec = 0, tooLong = false, peak = 0, loudChunks = 0;
     const preroll = [];
 

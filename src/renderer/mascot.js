@@ -5,6 +5,8 @@
   const $ = (s) => document.querySelector(s);
   // The character on screen: one of the 12 AgentKit characters, chosen in Settings → Character.
   // `K` is a small adapter so the rest of this file doesn't care which character is shown.
+  // Desktop buddy: light frame budget so it never competes with your work (eyes still follow the mouse).
+  Object.assign(AgentKit.defaults, { maxFps: 30, calmFps: 20, pointerBoost: false });
   const agent = AgentKit.create("#kakashi", { style: "nori", size: 72, interactive: false });
   let charKey = "";
   const K = {
@@ -192,7 +194,7 @@
     }
     syncCloudWake();
   }, 15000);
-  window.ttm.onWakeRestart(() => { if (phase !== "off") return; window.WakeWord.stop(); syncCloudWake(); setTimeout(warmUpWebRTC, 2000); });
+  window.ttm.onWakeRestart(() => { if (phase !== "off") return; window.WakeWord.stop(); syncCloudWake(); });
   // Heartbeat so the main process knows this window is alive
   setInterval(() => window.ttm.alive(), 20000);
   window.ttm.alive();
